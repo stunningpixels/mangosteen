@@ -1,0 +1,11 @@
+config:
+    general:
+        root: mangosteen
+    db:
+        debug: true
+        user: root
+        password: #default
+        dbName: mydb
+        host: localhost
+        port: 3306
+        encoding: latin1
