@@ -20,7 +20,7 @@ class Core {
 
         $uri_req = $this->cleanURI($uri);
 
-        $request = $uri_req[0];
+        $this->request = $uri_req[0];
 
         if($this->setHandler()) {
             if($this->evaluatePermissions($this->handler["permissions"], $_SERVER['REMOTE_ADDR'])) {
@@ -96,6 +96,7 @@ class Core {
             }
             return false;
         }else if($permissions["type"] == blacklist) {
+            if($permissions["ips"][0] == "") return true;
             foreach($permissions["ips"] as $ip) {
                 if($ip == $userip) return false;
             }

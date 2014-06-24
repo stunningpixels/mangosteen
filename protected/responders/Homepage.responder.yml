@@ -7,6 +7,7 @@ class: Homepage
 responders:
     - /^homepage$/
     - /^home$/
+    - /^mangosteen$/
 
 appearance:
     title: Homepage
@@ -15,8 +16,7 @@ appearance:
     footer: true
 
 permissions:
-    type: whitelist
+    type: blacklist
     ips:
-        - 12.34.56.78
-        - 86.14.157.82
-        - ::1
+#        - 12.34.56.78
+#        - ::1
