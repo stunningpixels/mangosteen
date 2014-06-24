@@ -13,7 +13,6 @@ appearance:
     description: Your first mangosteen project
     header: true
     footer: true
-    debug: true
 
 permissions:
     type: whitelist

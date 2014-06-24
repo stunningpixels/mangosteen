@@ -2,7 +2,7 @@
 
 class Homepage extends Page{
     public function __construct($args, $util) {
-        $this->addVar("test", "testing123");
+        $this->addVar("version", "Alpha 1");
         $this->addTPL("example");
     }
 }

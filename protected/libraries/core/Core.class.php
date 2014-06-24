@@ -107,6 +107,9 @@ class Core {
         require("../../responders/{$this->handler['handler']}");
         $this->page = new $this->handler["class"]($args, array());
 
+        $this->smarty->assign("title", $this->handler["appearance"]["title"]);
+        $this->smarty->assign("description", $this->handler["appearance"]["description"]);
+
         foreach($this->page->variables as $name=>$variable) {
             $this->smarty->assign($name, $variable);
         }

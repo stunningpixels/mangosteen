@@ -1,12 +1,5 @@
 <?php
 
-/*
-
-All content and software copyright Louis Knight-Webb 2014
-ALL RIGHTS RESERVED
-
-*/
-
 require("../spyc/spyc.class.php");
 require("../meekro/meekro.class.php");
 require("../smarty/smarty.class.php");
