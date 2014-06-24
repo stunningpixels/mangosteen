@@ -5,6 +5,7 @@ handler: Homepage.class.php
 class: Homepage
 
 responders:
+    - /^$/
     - /^homepage$/
     - /^home$/
     - /^mangosteen$/
