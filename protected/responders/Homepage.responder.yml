@@ -1,0 +1,23 @@
+identifier: homepage
+
+handler: Homepage.class.php
+
+class: Homepage
+
+responders:
+    - /^homepage$/
+    - /^home$/
+
+appearance:
+    title: Homepage
+    description: Your first mangosteen project
+    header: true
+    footer: true
+    debug: true
+
+permissions:
+    type: whitelist
+    ips:
+        - 12.34.56.78
+        - 86.14.157.82
+        - ::1

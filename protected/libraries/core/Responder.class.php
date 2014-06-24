@@ -18,16 +18,4 @@ session_start();
 
 date_default_timezone_set("GMT");
 
-$core = new Core;
-
-$core->loadPages();
-
-$uri = $core->cleanURI($_SERVER["REQUEST_URI"]);
-
-print_r($uri);
-
-if($core->routePage($uri[0])) {
-    $core->buildPage($uri[1]);
-}else {
-    $core->buildErrorPage($uri[1]);
-}
+$core = new Core($_SERVER["REQUEST_URI"]);

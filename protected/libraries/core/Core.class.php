@@ -1,33 +1,40 @@
 <?php
 
 class Core {
+
+    private $responders = array();
+    private $request = "homepage";
+    private $handler = array(
+        "identifier" => "",
+        "handler" => "",
+        "class" => "",
+        "permissions" => "",
+        "appearance" => "",
+        "request" => ""
+    );
+    private $page;
+    private $smarty;
     
-    public $root;
-    public $config = array();
-    public $page;
     
-    
-    public function __construct() {
-        $this->root = "";
-        $this->config = $this->loadConfig();
-        $this->setupDB();
+    public function __construct($uri) {
+
+        $uri_req = $this->cleanURI($uri);
+
+        $request = $uri_req[0];
+
+        if($this->setHandler()) {
+            if($this->evaluatePermissions($this->handler["permissions"], $_SERVER['REMOTE_ADDR'])) {
+                $this->smarty = new Smarty;
+                $this->executeHandler($uri_req[1]);
+            }else {
+                #Permissions error
+            }
+        }else {
+            #Request error
+        }
     }
     
-    private function loadConfig() {
-        $raw = Spyc::YAMLLoad($this->root.'../../config/core.config.yml');
-        return $raw["config"];
-    }
-    
-    private function setupDB() {
-        DB::$user = $this->config["db"]["user"];
-        DB::$password = $this->config["db"]["password"];
-        DB::$dbName = $this->config["db"]["dbName"];
-        DB::$host = $this->config["db"]["host"];
-        DB::$port = $this->config["db"]["port"];
-        DB::$encoding = $this->config["db"]["encoding"];
-    }
-    
-    public function cleanURI($uri) {
+    private function cleanURI($uri) {
         $base_page = "";
         $arguments = array();
         
@@ -50,47 +57,71 @@ class Core {
         
     }
     
-    public function loadPages() {
-        #File in folder 'responders'
-    
-        foreach($this->config["pages"] as $page) {
-            include("libraries/core/".$page.".class.php");
-        }
-    }
-    
-    public function routePage($clean_url) {
-        foreach($this->config["pages"] as $page) {
-            if(in_array($clean_url, $page::getResponders())) {
-                $this->page = $page;
-                return true;
+    private function setHandler() {
+        $responders = scandir("../../responders");
+        foreach($responders as $responder) {
+            if(substr($responder, -3) == "yml") {
+                $current = Spyc::YAMLLoad("../../responders/" . $responder);
+
+                foreach($current["responders"] as $regex) {
+                    if(preg_match($regex, $this->request) >= 1) {
+
+                        if($this->handler["identifier"] != "") return false;
+
+                        $this->handler = array(
+                            "identifier"    =>  $current["identifier"],
+                            "handler"       =>  $current["handler"],
+                            "class"         =>  $current["class"],
+                            "permissions"   =>  $current["permissions"],
+                            "appearance"    =>  $current["appearance"],
+                            "request"       =>  $regex
+                        );
+                    }
+                }
+
+                $this->responders[$current["identifier"]] = $current;
             }
         }
-        
-        return false;
+
+        if($this->handler["identifier"] == "") return false;
+
+        return true;
     }
-    
-    public function buildPage($args) {
-        $smarty = new Smarty;
-        $profile = new $this->page($args);
-        
-        foreach($profile->variables as $name=>$variable) {
-            $smarty->assign($name, $variable);
+
+    private function evaluatePermissions($permissions, $userip) {
+
+        if($permissions["type"] == whitelist) {
+            foreach($permissions["ips"] as $ip) {
+                if($ip == $userip) return true;
+            }
+            return false;
+        }else if($permissions["type"] == blacklist) {
+            foreach($permissions["ips"] as $ip) {
+                if($ip == $userip) return false;
+            }
+            return true;
         }
-        
-        if($profile->header) {
-            $smarty->display('templates/header.tpl');
-            $_SESSION["nav_back"] = array("url"=>"http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
-        }
-        
-        foreach($profile->templates as $template) {
-            $smarty->display('templates/'.$template.'.tpl');
-        }
-        
-        if($profile->footer) $smarty->display('templates/footer.tpl');
     }
-    
-    public static function log($message) {
-        DB::query("INSERT INTO hs_log (time, message) VALUES (%s, %s)", date('Y-m-d H:i:s'), $message);
+
+    private function executeHandler($args) {
+        require("../../responders/{$this->handler['handler']}");
+        $this->page = new $this->handler["class"]($args, array());
+
+        foreach($this->page->variables as $name=>$variable) {
+            $this->smarty->assign($name, $variable);
+        }
+        
+        if($this->handler["appearance"]["header"] == true) $this->smarty->display('../../templates/header.tpl');
+        
+        echo "\n"; #Readability
+
+        foreach($this->page->templates as $template) {
+            $this->smarty->display('../../templates/'.$template.'.tpl');
+        }
+
+        echo "\n"; #Readability
+        
+        if($this->handler["appearance"]["footer"] == true) $this->smarty->display('../../templates/footer.tpl');
     }
     
 }
